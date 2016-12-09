@@ -51,14 +51,15 @@ BSDetector.prototype = {
      * @method debug
      * @param {string}
      */
-    debug: function (message) {
+     debug: function () {
 
-        'use strict';
+         'use strict';
 
-        if (this.debugActive === true) {
-            console.debug('[B.S. 💩 Detector] ' + message);
-        }
-    },
+         if (this.debugActive === true) {
+             console.debug.apply(null,['[B.S. 💩 Detector] '].concat(arguments));
+         }
+     },
+
 
 
     /**
@@ -175,7 +176,7 @@ BSDetector.prototype = {
             }
         }
 
-        this.debug('currentUrl: ' + this.currentUrl);
+        this.debug('currentUrl: ' + this.currentUrl,self, top, self === top);
         this.debug(this.currentSite);
         this.debug('siteId: ' + this.siteId);
         this.debug('dataType: ' + this.dataType);
@@ -440,14 +441,14 @@ BSDetector.prototype = {
         $('a[href]:not([href^="#"]),a[data-expanded-url]').each(function () {
 
             var
-                a = new RegExp('/' + window.location.host + '/'),
+                a = new RegExp( window.location.host ),
                 testLink = '',
                 thisUrl = '';
 
             //this.debug('target link: ' + $(this));
 
             // exclude links that have the same hostname
-            if (!a.test(bsd.href)) {
+            if (!a.test(this.href)) {
                 $(this).attr('data-external', true);
             }
 
@@ -500,6 +501,7 @@ BSDetector.prototype = {
 
         'use strict';
 
+        this.debug('flagit',$badlinkWrapper, this.warnMessage);
         if (!$badlinkWrapper.hasClass('bs-flag')) {
             if (this.dataType === 'caution') {
                 $badlinkWrapper.before('<div class="bs-alert-inline warning">' + this.warnMessage + '</div>');
@@ -525,24 +527,25 @@ BSDetector.prototype = {
         this.targetLinks();
 
         $('a[data-is-bs="true"]').each(function () {
-            this.dataType = $(this).attr('data-bs-type');
-            this.warningMsg();
+            bsd.dataType = $(this).attr('data-bs-type');
+            bsd.warningMsg();
 
-            this.debug('bs link: ' + this);
-            this.debug('dataType: ' + this.dataType);
+            bsd.debug('bs link: ', this, this.siteId);
+            bsd.debug('dataType: ' + this.dataType);
 
-            switch (this.siteId) {
+            switch (bsd.siteId) {
             case 'facebook':
+              bsd.debug('lw fb',this);
                 if ($(this).parents('._1dwg').length >= 0) {
-                    this.flagIt($(this).closest('.mtm'));
+                    bsd.flagIt($(this).closest('.mtm'));
                 }
                 if ($(this).parents('.UFICommentContent').length >= 0) {
-                    this.flagIt($(this).closest('.UFICommentBody'));
+                    bsd.flagIt($(this).closest('.UFICommentBody'));
                 }
                 break;
             case 'twitter':
                 if ($(this).parents('.tweet').length >= 0) {
-                    this.flagIt($(this).closest('.js-tweet-text-container'));
+                    bsd.flagIt($(this).closest('.js-tweet-text-container'));
                 }
                 break;
             case 'badlink':
@@ -583,8 +586,9 @@ BSDetector.prototype = {
             this.linkWarning();
 
             $.each(this.targetNodes, function (id, node) {
+                bsd.debug('targetnodes',this,node);
                 if (node !== null) {
-                    bsd.mutationObserver.observe(node, bsd.observerConfig);
+                    bsd.mutationObserver.observe(this, bsd.observerConfig);
                 }
             });
             return;
@@ -625,7 +629,7 @@ BSDetector.prototype = {
 
         $.each(this.targetNodes, function (id, node) {
             if (node !== null) {
-                bsd.mutationObserver.observe(node, bsd.observerConfig);
+                bsd.mutationObserver.observe(this, bsd.observerConfig);
             }
         });
     },
