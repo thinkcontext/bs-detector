@@ -32,7 +32,8 @@ var
         'x.co'
     ],
     toExpand = [],
-    expanded = [];
+    expanded = [],
+    shortsRE = new RegExp(shorts.join('|'));
 
 
 
@@ -161,3 +162,34 @@ chrome.pageAction.onClicked.addListener(function (tab) {
         operation: 'toggleFlag'
     });
 });
+
+// catch unshortener requests from the background page
+
+chrome.webRequest.onHeadersReceived.addListener(
+  function(x){
+    console.log('onHeadersReceived',x);
+  },
+  {
+    urls: shorts.map(function(x){ return '*://' + x + '/*'}),
+    types: ['xmlhttprequest'],
+    tabId: -1
+  },
+  ['responseHeaders']
+);
+
+// block any HEADs to a nonshortener service so as not to
+// we'll
+chrome.webRequest.onBeforeRequest.addListener(
+  function(x){
+    console.log('onBeforeRequest',x,shortsRE.test(x.url),x.method =='HEAD');
+    if(!shortsRE.test(x.url) && x.method == 'HEAD'){
+      return { cancel: true }
+    }
+  },
+  {
+    urls: ["<all_urls>"],
+    types: ['xmlhttprequest'],
+    tabId: -1
+  },
+  ['blocking']
+);
